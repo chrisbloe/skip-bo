@@ -28,20 +28,15 @@ public class Game implements Serializable {
     private Long id;
     
     @ElementCollection(fetch = FetchType.EAGER)
-    @Enumerated(EnumType.STRING)
     private Map<PileType, Pile> piles;
     
     @ElementCollection(fetch = FetchType.EAGER)
-    @Enumerated(EnumType.STRING)
     private Map<PlayerNumber, Player> players;
     
     @Enumerated(EnumType.STRING)
     private PlayerNumber currentPlayerNumber;
     
-    public Game() {
-        createPiles();
-        createDeck();
-    }
+    public Game() { }
 
     public Long getId() {
         return id;
@@ -51,7 +46,7 @@ public class Game implements Serializable {
         this.id = id;
     }
 
-    private void createPiles() {
+    public void createPiles() {
         piles = new EnumMap<PileType, Pile>(PileType.class) {{
             put(PileType.DECK, new Pile());
             put(PileType.EXILE, new Pile());
@@ -62,7 +57,7 @@ public class Game implements Serializable {
         }};
     }
 
-    private void createDeck() {
+    public void createDeck() {
         Pile deck = piles.get(PileType.DECK);
         
         for (int i = 0; i < 12; i++) {
@@ -79,8 +74,9 @@ public class Game implements Serializable {
     }
 
     public void deal() {
+        Pile deck = piles.get(PileType.DECK);
+        
         for (Player player : players.values()) {
-            Pile deck = piles.get(PileType.DECK);
             Pile drawPile = player.getPile(PileType.DRAW);
             
             for (int i = 0; i < 30; i++) {

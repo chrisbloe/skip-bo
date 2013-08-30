@@ -16,7 +16,7 @@ public class CurrentPlayerCheck {
     @Pointcut("execution(* com.custardcoding.skipbo.controller.*.*(..)) && args(gameId,..)")
     public void businessMethods(Long gameId) { }
  
-    @Before("businessMethods(request)")
+    @Before("businessMethods(gameId)")
     public void before(Long gameId) {
         System.out.println("Game id: " + gameId);
     }

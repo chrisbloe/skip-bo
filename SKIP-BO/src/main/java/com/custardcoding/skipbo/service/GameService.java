@@ -39,10 +39,10 @@ public class GameService {
             put(PlayerNumber.TWO, new Player());
         }};
         
+        game.createPiles();
+        game.createDeck();
         game.setPlayers(players);
-        
         game.setCurrentPlayerNumber((PlayerNumber) players.keySet().toArray()[new Random().nextInt(players.size())]);
-        
         game.deal();
         
         gameDAO.saveGame(game);
