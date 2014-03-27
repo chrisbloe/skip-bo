@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  *
  * @author Andrew Morgan
+ * @param <T>
  */
 public abstract class HibernateGenericDAO<T> implements InterfaceGenericDAO<T> {
     
@@ -113,7 +114,7 @@ public abstract class HibernateGenericDAO<T> implements InterfaceGenericDAO<T> {
             crit.addOrder(Order.desc(orderByPropertyName));
         }
         
-        for(Criterion c : criterion) {
+        for (Criterion c : criterion) {
             crit.add(c);
         }
             
@@ -139,7 +140,7 @@ public abstract class HibernateGenericDAO<T> implements InterfaceGenericDAO<T> {
             crit.addOrder(Order.desc(orderByPropertyName));
         }
         
-        for(Criterion c : criterion) {
+        for (Criterion c : criterion) {
             crit.add(c);
         }
             

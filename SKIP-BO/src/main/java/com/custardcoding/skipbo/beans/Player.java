@@ -23,7 +23,7 @@ public class Player implements Serializable {
     private Long id;
     
     @ElementCollection(fetch = FetchType.EAGER)
-    private Map<PileType, Pile> piles;
+    private final Map<PileType, Pile> piles;
     
     public Player() {
         piles = new EnumMap<PileType, Pile>(PileType.class) {{

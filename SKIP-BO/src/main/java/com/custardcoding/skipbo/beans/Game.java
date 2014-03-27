@@ -76,7 +76,7 @@ public class Game implements Serializable {
     public void deal() {
         Pile deck = piles.get(PileType.DECK);
         
-        for (Player player : players.values()) {
+        players.values().forEach((player) -> {
             Pile drawPile = player.getPile(PileType.DRAW);
             
             for (int i = 0; i < 30; i++) {
@@ -86,7 +86,7 @@ public class Game implements Serializable {
             for (int i = 1; i < 6; i++) {
                 player.getPile(PileType.valueOf("HAND" + i)).addCard(deck.removeTopCard());
             }
-        }
+        });
     }
     
     private void endTurn() {

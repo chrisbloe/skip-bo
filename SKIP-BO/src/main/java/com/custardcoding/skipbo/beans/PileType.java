@@ -17,8 +17,8 @@ public enum PileType {
     DISCARD1(PileArea.PLAYER, true, true), DISCARD2(PileArea.PLAYER, true, true),
     DISCARD3(PileArea.PLAYER, true, true), DISCARD4(PileArea.PLAYER, true, true);
     
-    private PileArea pileArea;
-    private boolean playableFrom, playableTo;
+    private final PileArea pileArea;
+    private final boolean playableFrom, playableTo;
     
     PileType(PileArea pileArea, boolean playableFrom, boolean playableTo) {
         this.pileArea = pileArea;

@@ -1,8 +1,6 @@
 package com.custardcoding.skipbo.repository;
 
 import com.custardcoding.skipbo.beans.Game;
-import com.custardcoding.skipbo.beans.Pile;
-import com.custardcoding.skipbo.beans.Player;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -20,13 +18,13 @@ public class GameDAO extends HibernateGenericDAO<Game> {
     private PlayerDAO playerDAO;
     
     public void saveGame(Game game) {
-        for (Pile pile : game.getPiles().values()) {
+        game.getPiles().values().forEach((pile) -> {
             pileDAO.makePersistent(pile);
-        }
+        });
         
-        for (Player player : game.getPlayers().values()) {
+        game.getPlayers().values().forEach((player) -> {
             playerDAO.savePlayer(player);
-        }
+        });
         
         makePersistent(game);
     }

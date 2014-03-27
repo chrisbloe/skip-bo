@@ -5,6 +5,7 @@ import java.util.List;
 /**
  *
  * @author Andrew Morgan
+ * @param <T>
  */
 public interface InterfaceGenericDAO<T> {
     
