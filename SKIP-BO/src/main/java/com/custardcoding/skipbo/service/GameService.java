@@ -70,7 +70,7 @@ public class GameService {
     }
     
     public Response playCard(Long gameId, PlayerNumber playerNumber, PileType fromPileType, PileType toPileType) {
-        log.debug("Playing card (game {}, player {}, from {}, to {}...", gameId, playerNumber, fromPileType, toPileType);
+        log.debug("Playing card (game {}, player {}, from {}, to {})...", gameId, playerNumber, fromPileType, toPileType);
         
         Game game = gameDAO.get(gameId);
         
