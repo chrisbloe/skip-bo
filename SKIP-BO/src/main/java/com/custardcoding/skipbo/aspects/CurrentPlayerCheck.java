@@ -27,7 +27,7 @@ public class CurrentPlayerCheck {
  
     @Before("businessMethods(gameId)")
     public void before(Long gameId) {
-        log.info("Game id: " + gameId + "...");
+        log.debug("Game {} request start...", gameId);
         
         try {
             synchronizerService.lock(gameId);
@@ -38,7 +38,7 @@ public class CurrentPlayerCheck {
  
     @After("businessMethods(gameId)")
     public void after(Long gameId) {
-        System.out.println("...game id: " + gameId);
+        log.debug("...game {} request finish", gameId);
         
         synchronizerService.release(gameId);
     }

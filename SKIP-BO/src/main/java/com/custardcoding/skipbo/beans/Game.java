@@ -14,6 +14,8 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -22,6 +24,7 @@ import javax.persistence.Id;
 @Entity
 @JsonInclude(Include.NON_NULL)
 public class Game implements Serializable {
+    private static final Logger log = LogManager.getLogger(Game.class);
     
     @Id
     @GeneratedValue(strategy = GenerationType.TABLE)
@@ -130,6 +133,8 @@ public class Game implements Serializable {
     public PlayerNumber getWinner() {
         for (PlayerNumber playerNumber : players.keySet()) {
             if (players.get(playerNumber).getPile(PileType.DRAW).isEmpty()) {
+                log.info("Player {} wins game {}!", playerNumber, id);
+                
                 return playerNumber;
             }
         }

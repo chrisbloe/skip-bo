@@ -54,33 +54,33 @@ public class GameService {
         
         gameDAO.saveGame(game);
         
-        log.info("...game created (id " + game.getId() + "), starting player " + game.getCurrentPlayerNumber());
+        log.info("...game {} created, starting player {}", game.getId(), game.getCurrentPlayerNumber());
         
         return game;
     }
 
     public Game retrieveGame(Long gameId) {
-        log.debug("Retrieving game (id " + gameId + ")...");
+        log.debug("Retrieving game {}...", gameId);
         
         Game game = gameDAO.get(gameId);
         
-        log.debug("...game (id " + gameId + ") retrieved");
+        log.debug("...game {} retrieved", gameId);
         
         return game;
     }
     
     public Response playCard(Long gameId, PlayerNumber playerNumber, PileType fromPileType, PileType toPileType) {
-        log.debug("Playing card (game id " + gameId + ", player " + playerNumber + ", from " + fromPileType + ", to " + toPileType + "...");
+        log.debug("Playing card (game {}, player {}, from {}, to {}...", gameId, playerNumber, fromPileType, toPileType);
         
         Game game = gameDAO.get(gameId);
         
         if (game == null) {
             FailureResponse response = new FailureResponse("Invalid game id!");
-            log.error("Game does not exist (game id " + gameId + ')', response);
+            log.error("Game " + gameId + " does not exist", response);
             return response;
         } else if (!game.isCurrentPlayer(playerNumber)) {
             FailureResponse response = new FailureResponse("Wrong player!");
-            log.error("Wrong player (game id " + gameId + ", player " + playerNumber + ')', response);
+            log.error("Wrong player (game " + gameId + ", player " + playerNumber + ')', response);
             return response;
         } else if (!fromPileType.isPlayableFrom() || game.getCurrentPlayer().getPile(fromPileType).isEmpty()) {
             FailureResponse response = new FailureResponse("Cannot play from here!");
@@ -102,7 +102,10 @@ public class GameService {
                 gameDAO.saveGame(game);
                 
                 log.debug("...card played");
-                return new SuccessResponse(false, game.getWinner());
+                
+                PlayerNumber winner = game.getWinner();
+                
+                return new SuccessResponse(winner != null, winner);
             } else {
                 FailureResponse response = new FailureResponse("Cannot play to here!");
                 log.debug("Invalid to location", response);
@@ -113,6 +116,7 @@ public class GameService {
             gameDAO.saveGame(game);
             
             log.debug("...card played");
+            
             return new SuccessResponse(true, game.getWinner());
         }
     }
