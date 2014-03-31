@@ -1,6 +1,8 @@
 package com.custardcoding.skipbo.aspects;
 
 import com.custardcoding.skipbo.service.SynchronizerService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 public class CurrentPlayerCheck {
+    private static final Logger log = LogManager.getLogger(CurrentPlayerCheck.class);
     
     @Autowired
     private SynchronizerService synchronizerService;
@@ -24,7 +27,7 @@ public class CurrentPlayerCheck {
  
     @Before("businessMethods(gameId)")
     public void before(Long gameId) {
-        System.out.println("Before ~ Game id: " + gameId);
+        log.info("Game id: " + gameId + "...");
         
         try {
             synchronizerService.lock(gameId);
@@ -35,7 +38,7 @@ public class CurrentPlayerCheck {
  
     @After("businessMethods(gameId)")
     public void after(Long gameId) {
-        System.out.println("After ~ Game id: " + gameId);
+        System.out.println("...game id: " + gameId);
         
         synchronizerService.release(gameId);
     }

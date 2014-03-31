@@ -7,11 +7,15 @@ import com.custardcoding.skipbo.beans.PileArea;
 import com.custardcoding.skipbo.beans.PileType;
 import com.custardcoding.skipbo.beans.Player;
 import com.custardcoding.skipbo.beans.PlayerNumber;
+import com.custardcoding.skipbo.beans.api.FailureResponse;
 import com.custardcoding.skipbo.beans.api.Response;
+import com.custardcoding.skipbo.beans.api.SuccessResponse;
 import com.custardcoding.skipbo.repository.GameDAO;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Random;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class GameService {
+    private static final Logger log = LogManager.getLogger(GameService.class);
     
     @Autowired
     private GameDAO gameDAO;
@@ -32,6 +37,8 @@ public class GameService {
     }
     
     public Game startNewGame() {
+        log.info("Creating new game...");
+        
         Game game = new Game();
         
         Map<PlayerNumber, Player> players = new EnumMap<PlayerNumber, Player>(PlayerNumber.class) {{
@@ -47,45 +54,43 @@ public class GameService {
         
         gameDAO.saveGame(game);
         
+        log.info("...game created (id " + game.getId() + "), starting player " + game.getCurrentPlayerNumber());
+        
         return game;
     }
 
     public Game retrieveGame(Long gameId) {
-        return gameDAO.get(gameId);
+        log.debug("Retrieving game (id " + gameId + ")...");
+        
+        Game game = gameDAO.get(gameId);
+        
+        log.debug("...game (id " + gameId + ") retrieved");
+        
+        return game;
     }
     
     public Response playCard(Long gameId, PlayerNumber playerNumber, PileType fromPileType, PileType toPileType) {
+        log.debug("Playing card (game id " + gameId + ", player " + playerNumber + ", from " + fromPileType + ", to " + toPileType + "...");
+        
         Game game = gameDAO.get(gameId);
         
         if (game == null) {
-            Response response = new Response();
-            response.setSuccess(false);
-            response.setErrorMessage("Invalid game id!");
+            FailureResponse response = new FailureResponse("Invalid game id!");
+            log.error("Game does not exist (game id " + gameId + ')', response);
+            return response;
+        } else if (!game.isCurrentPlayer(playerNumber)) {
+            FailureResponse response = new FailureResponse("Wrong player!");
+            log.error("Wrong player (game id " + gameId + ", player " + playerNumber + ')', response);
+            return response;
+        } else if (!fromPileType.isPlayableFrom() || game.getCurrentPlayer().getPile(fromPileType).isEmpty()) {
+            FailureResponse response = new FailureResponse("Cannot play from here!");
+            log.debug("Invalid from location", response);
+            return response;
+        } else if (!toPileType.isPlayableTo()) {
+            FailureResponse response = new FailureResponse("Cannot play to here!");
+            log.debug("Invalid to location", response);
             return response;
         }
-        
-        if (!game.isCurrentPlayer(playerNumber)) {
-            Response response = new Response();
-            response.setSuccess(false);
-            response.setErrorMessage("Wrong player!");
-            return response;
-        }
-        
-        if (!fromPileType.isPlayableFrom() || game.getCurrentPlayer().getPile(fromPileType).isEmpty()) {
-            Response response = new Response();
-            response.setSuccess(false);
-            response.setErrorMessage("Cannot play from here!");
-            return response;
-        }
-        
-        if (!toPileType.isPlayableTo()) {
-            Response response = new Response();
-            response.setSuccess(false);
-            response.setErrorMessage("Cannot play to here!");
-            return response;
-        }
-        
-        Response response = new Response();
         
         Pile fromPile = game.getCurrentPlayer().getPile(fromPileType);
         
@@ -94,23 +99,21 @@ public class GameService {
             
             if (fromPile.getTopCard().canPlayOn(toPileTopCard)) {
                 game.getPile(toPileType).playCard(fromPile.removeTopCard());
-                response.setSuccess(true);
+                gameDAO.saveGame(game);
+                
+                log.debug("...card played");
+                return new SuccessResponse(false, game.getWinner());
             } else {
-                response.setSuccess(false);
-                response.setErrorMessage("Cannot play to here!");
+                FailureResponse response = new FailureResponse("Cannot play to here!");
+                log.debug("Invalid to location", response);
+                return response;
             }
-            
-            response.setEndTurn(false);
-            response.setWinner(game.getWinner());
         } else {
             game.getCurrentPlayer().getPile(toPileType).playCard(fromPile.removeTopCard());
-            response.setSuccess(true);
-            response.setEndTurn(true);
-            response.setWinner(game.getWinner());
+            gameDAO.saveGame(game);
+            
+            log.debug("...card played");
+            return new SuccessResponse(true, game.getWinner());
         }
-        
-        gameDAO.saveGame(game);
-        
-        return response;
     }
 }

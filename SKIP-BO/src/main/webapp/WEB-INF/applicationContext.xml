@@ -11,7 +11,9 @@
     
     <tx:annotation-driven />
     
-    <context:component-scan base-package="com.custardcoding.skipbo.**.*" />
+    <context:component-scan base-package="com.custardcoding.skipbo" />
+    
+    <aop:aspectj-autoproxy />
     
 <!--    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
         <property name="driverClass" value="com.mysql.jdbc.Driver" />
