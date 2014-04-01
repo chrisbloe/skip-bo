@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Custard
  */
 @RestController
-public class GameController implements SkipboController {
+public class GameController extends SkipboController {
     
     @Autowired
     private GameService gameService;

@@ -5,9 +5,9 @@ import com.custardcoding.skipbo.beans.Game;
 import com.custardcoding.skipbo.beans.Pile;
 import com.custardcoding.skipbo.beans.PileType;
 import com.custardcoding.skipbo.beans.PlayerNumber;
-import com.custardcoding.skipbo.beans.api.FailureResponse;
-import com.custardcoding.skipbo.beans.api.Response;
 import com.custardcoding.skipbo.beans.api.SuccessResponse;
+import com.custardcoding.skipbo.exception.BadRequestException;
+import com.custardcoding.skipbo.exception.RequestError;
 import com.custardcoding.skipbo.repository.GameDAO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -68,40 +68,24 @@ public class GameService {
         return game;
     }
     
-    public Response playCard(Long gameId, PlayerNumber playerNumber, PileType fromPileType, PileType toPileType) {
+    public SuccessResponse playCard(Long gameId, PlayerNumber playerNumber, PileType fromPileType, PileType toPileType) {
         log.debug("{}: Playing card (player {}, from {}, to {})", gameId, playerNumber, fromPileType, toPileType);
         
         Game game = gameDAO.get(gameId);
         
         if (game == null) {
-            FailureResponse response = new FailureResponse("Invalid game id!");
-            log.error(gameId + ": Game does not exist", response);
-            return response;
+            throw new BadRequestException(gameId, RequestError.INVALID_GAME_ID);
         } else if (!game.isCurrentPlayer(playerNumber)) {
-            FailureResponse response = new FailureResponse("Wrong player!");
-            log.error(gameId + ": It isn't " + playerNumber + "'s turn", response);
-            return response;
+            throw new BadRequestException(gameId, RequestError.WRONG_PLAYER);
         } else if (PileType.isGamePileArea(fromPileType)) {
-            FailureResponse response = new FailureResponse("Cannot play from here!");
-            log.debug(gameId + ": " + fromPileType + " does not belong to players", response);
-            return response;
+            throw new BadRequestException(gameId, RequestError.WRONG_FROM_PILE);
         } else if (game.getCurrentPlayer().getPile(fromPileType).isEmpty()) {
-            FailureResponse response = new FailureResponse("Cannot play from here!");
-            log.debug(gameId + ": " + fromPileType + " is empty", response);
-            return response;
+            throw new BadRequestException(gameId, RequestError.FROM_PILE_EMPTY);
         } else if (!PileType.isBuildPileType(toPileType) && !PileType.isDiscardPileType(toPileType)) {
-            FailureResponse response = new FailureResponse("Cannot play to here!");
-            log.debug(gameId + ": Cannot play to " + toPileType, response);
-            return response;
+            throw new BadRequestException(gameId, RequestError.WRONG_TO_PILE);
         }
         
         Pile fromPile = game.getCurrentPlayer().getPile(fromPileType);
-        
-        if (fromPile.isEmpty()) {
-            FailureResponse response = new FailureResponse("Pile empty!");
-            log.error(gameId + ": " + fromPileType + " is empty", response);
-            return response;
-        }
         
         if (PileType.isGamePileArea(toPileType)) {
             Pile toPile = game.getPile(toPileType);
@@ -130,7 +114,7 @@ public class GameService {
                     log.debug("{}: Cannot play a {} on a {}", gameId, fromPile.getTopCard(), toPile.getTopCard());
                 }
                 
-                return new FailureResponse("Cannot play to here!");
+                throw new BadRequestException(gameId, RequestError.NOT_SEQUENTIAL);
             }
         } else {
             // Only play from the player's hand.
@@ -146,9 +130,7 @@ public class GameService {
 
                 return new SuccessResponse(true, winner);
             } else {
-                FailureResponse response = new FailureResponse("Cannot play to here!");
-                log.debug(gameId + ": Cannot discard from " + fromPileType, response);
-                return response;
+                throw new BadRequestException(gameId, RequestError.INVALID_PLAY);
             }
         }
     }
