@@ -57,17 +57,18 @@ public class Pile implements Serializable {
         cards.add(card);
     }
     
+    public void addCards(List<Card> cards) {
+        cards.addAll(cards);
+    }
+    
     @JsonIgnore
     public Card getTopCard() {
         return cards.isEmpty() ? null
                                : cards.get(cards.size()-1);
     }
     
+    @JsonIgnore
     public Card removeTopCard() {
-        if (cards.isEmpty()) {
-            return null;
-        }
-        
         return cards.remove(cards.size()-1);
     }
     
@@ -75,11 +76,8 @@ public class Pile implements Serializable {
         cards.add(newCard);
     }
     
+    @JsonIgnore
     public List<Card> emptyPile() {
-        if (cards.isEmpty()) {
-            return Collections.EMPTY_LIST;
-        }
-        
         List<Card> allCards = new ArrayList<>();
         
         while (!cards.isEmpty()) {

@@ -40,23 +40,26 @@ public class GameService {
         log.info("Creating new game...");
         
         Game game = new Game();
-        
-        Map<PlayerNumber, Player> players = new EnumMap<PlayerNumber, Player>(PlayerNumber.class) {{
-            put(PlayerNumber.ONE, new Player());
-            put(PlayerNumber.TWO, new Player());
-        }};
-        
-        game.createPiles();
-        game.createDeck();
-        game.setPlayers(players);
-        game.setCurrentPlayerNumber((PlayerNumber) players.keySet().toArray()[new Random().nextInt(players.size())]);
-        game.deal();
-        
+        deal(game);
         gameDAO.saveGame(game);
         
         log.info("...game {} created, starting player {}", game.getId(), game.getCurrentPlayerNumber());
         
         return game;
+    }
+    
+    private void deal(Game game) {
+        game.getPlayers().values().forEach((player) -> {
+            Pile drawPile = player.getPile(PileType.DRAW);
+            
+            for (int i = 0; i < 30; i++) {
+                drawPile.addCard(getTopDeckCard(game));
+            }
+            
+            for (int i = 1; i < 6; i++) {
+                player.getPile(PileType.valueOf("HAND" + i)).addCard(getTopDeckCard(game));
+            }
+        });
     }
 
     public Game retrieveGame(Long gameId) {
@@ -82,11 +85,11 @@ public class GameService {
             FailureResponse response = new FailureResponse("Wrong player!");
             log.error("Wrong player (game " + gameId + ", player " + playerNumber + ')', response);
             return response;
-        } else if (!fromPileType.isPlayableFrom() || game.getCurrentPlayer().getPile(fromPileType).isEmpty()) {
+        } else if (PileType.isGamePileArea(fromPileType) || game.getCurrentPlayer().getPile(fromPileType).isEmpty()) {
             FailureResponse response = new FailureResponse("Cannot play from here!");
             log.debug("Invalid from location", response);
             return response;
-        } else if (!toPileType.isPlayableTo()) {
+        } else if (!PileType.isBuildPileType(toPileType) && !PileType.isDiscardPileType(toPileType)) {
             FailureResponse response = new FailureResponse("Cannot play to here!");
             log.debug("Invalid to location", response);
             return response;
@@ -94,7 +97,13 @@ public class GameService {
         
         Pile fromPile = game.getCurrentPlayer().getPile(fromPileType);
         
-        if (toPileType.getPileArea().equals(PileArea.GAME)) {
+        if (fromPile.isEmpty()) {
+            FailureResponse response = new FailureResponse("Pile empty!");
+            log.error("Emppty pile (game " + gameId + ", player " + playerNumber + ", pile " + fromPileType + ')', response);
+            return response;
+        }
+        
+        if (PileType.isGamePileArea(toPileType)) {
             Card toPileTopCard = game.getPile(toPileType).getTopCard();
             
             if (fromPile.getTopCard().canPlayOn(toPileTopCard)) {
@@ -153,12 +162,22 @@ public class GameService {
     }
 
     private void replenishHand(Game game) {
-        Pile deck = game.getPile(PileType.DECK);
-        
         game.getCurrentPlayersHand().forEach((h) -> {
             if (h.isEmpty()) {
-                h.addCard(deck.removeTopCard());
+                h.addCard(getTopDeckCard(game));
             }
         });
+    }
+    
+    private Card getTopDeckCard(Game game) {
+        Pile deck = game.getPile(PileType.DECK);
+        
+        if (deck.isEmpty()) {
+            Pile exile = game.getPile(PileType.EXILE);
+            deck.addCards(exile.emptyPile());
+            deck.shuffle();
+        }
+        
+        return deck.removeTopCard();
     }
 }

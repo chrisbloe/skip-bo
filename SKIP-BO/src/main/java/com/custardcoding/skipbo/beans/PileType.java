@@ -9,36 +9,43 @@ import java.util.List;
  */
 public enum PileType {
     // Game
-    DECK(PileArea.GAME, false, false), EXILE(PileArea.GAME, false, false),
-    BUILD1(PileArea.GAME, false, true), BUILD2(PileArea.GAME, false, true),
-    BUILD3(PileArea.GAME, false, true), BUILD4(PileArea.GAME, false, true),
+    DECK(PileArea.GAME), EXILE(PileArea.GAME),
+    BUILD1(PileArea.GAME), BUILD2(PileArea.GAME),
+    BUILD3(PileArea.GAME), BUILD4(PileArea.GAME),
     
     // Player
-    DRAW(PileArea.PLAYER, true, false), HAND1(PileArea.PLAYER, true, false),
-    HAND2(PileArea.PLAYER, true, false), HAND3(PileArea.PLAYER, true, false),
-    HAND4(PileArea.PLAYER, true, false), HAND5(PileArea.PLAYER, true, false),
-    DISCARD1(PileArea.PLAYER, true, true), DISCARD2(PileArea.PLAYER, true, true),
-    DISCARD3(PileArea.PLAYER, true, true), DISCARD4(PileArea.PLAYER, true, true);
+    DRAW(PileArea.PLAYER), HAND1(PileArea.PLAYER),
+    HAND2(PileArea.PLAYER), HAND3(PileArea.PLAYER),
+    HAND4(PileArea.PLAYER), HAND5(PileArea.PLAYER),
+    DISCARD1(PileArea.PLAYER), DISCARD2(PileArea.PLAYER),
+    DISCARD3(PileArea.PLAYER), DISCARD4(PileArea.PLAYER);
     
     private final PileArea pileArea;
-    private final boolean playableFrom, playableTo;
     
-    PileType(PileArea pileArea, boolean playableFrom, boolean playableTo) {
+    PileType(PileArea pileArea) {
         this.pileArea = pileArea;
-        this.playableFrom = playableFrom;
-        this.playableTo = playableTo;
     }
 
     public PileArea getPileArea() {
         return pileArea;
     }
-
-    public boolean isPlayableFrom() {
-        return playableFrom;
+    
+    public static boolean isGamePileArea(PileType pileType) {
+        return pileType.getPileArea() == PileArea.GAME;
     }
-
-    public boolean isPlayableTo() {
-        return playableTo;
+    
+    public static boolean isBuildPileType(PileType pileType) {
+        return pileType == BUILD1 ||
+               pileType == BUILD2 ||
+               pileType == BUILD3 ||
+               pileType == BUILD4;
+    }
+    
+    public static boolean isDiscardPileType(PileType pileType) {
+        return pileType == DISCARD1 ||
+               pileType == DISCARD2 ||
+               pileType == DISCARD3 ||
+               pileType == DISCARD4;
     }
     
     public static boolean isHandPileType(PileType pileType) {

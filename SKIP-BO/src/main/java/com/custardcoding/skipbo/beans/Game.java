@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
@@ -45,7 +46,25 @@ public class Game implements Serializable {
     @Column(nullable = false)
     private boolean complete;
     
-    public Game() { }
+    public Game() {
+        piles = new EnumMap<PileType, Pile>(PileType.class) {{
+            put(PileType.DECK, new Pile());
+            put(PileType.EXILE, new Pile());
+            put(PileType.BUILD1, new Pile());
+            put(PileType.BUILD2, new Pile());
+            put(PileType.BUILD3, new Pile());
+            put(PileType.BUILD4, new Pile());
+        }};
+        
+        players = new EnumMap<PlayerNumber, Player>(PlayerNumber.class) {{
+            put(PlayerNumber.ONE, new Player());
+            put(PlayerNumber.TWO, new Player());
+        }};
+        
+        createDeck();
+        
+        currentPlayerNumber = (PlayerNumber) players.keySet().toArray()[new Random().nextInt(players.size())];
+    }
 
     public Long getId() {
         return id;
@@ -55,49 +74,6 @@ public class Game implements Serializable {
         this.id = id;
     }
 
-    public void createPiles() {
-        piles = new EnumMap<PileType, Pile>(PileType.class) {{
-            put(PileType.DECK, new Pile());
-            put(PileType.EXILE, new Pile());
-            put(PileType.BUILD1, new Pile());
-            put(PileType.BUILD2, new Pile());
-            put(PileType.BUILD3, new Pile());
-            put(PileType.BUILD4, new Pile());
-        }};
-    }
-
-    public void createDeck() {
-        Pile deck = piles.get(PileType.DECK);
-        
-        for (int i = 0; i < 12; i++) {
-            for (Card card : Card.values()) {
-                deck.addCard(card);
-            }
-        }
-        
-        for (int i = 0; i < 6; i++) {
-            deck.addCard(Card.SKIPBO);
-        }
-        
-        deck.shuffle();
-    }
-
-    public void deal() {
-        Pile deck = piles.get(PileType.DECK);
-        
-        players.values().forEach((player) -> {
-            Pile drawPile = player.getPile(PileType.DRAW);
-            
-            for (int i = 0; i < 30; i++) {
-                drawPile.addCard(deck.removeTopCard());
-            }
-            
-            for (int i = 1; i < 6; i++) {
-                player.getPile(PileType.valueOf("HAND" + i)).addCard(deck.removeTopCard());
-            }
-        });
-    }
-    
     public void endTurn() {
         currentPlayerNumber = currentPlayerNumber.getNextPlayer();
     }
@@ -137,7 +113,23 @@ public class Game implements Serializable {
     public void setComplete(boolean complete) {
         this.complete = complete;
     }
-
+    
+    private void createDeck() {
+        Pile deck = piles.get(PileType.DECK);
+        
+        for (int i = 0; i < 12; i++) {
+            for (Card card : Card.values()) {
+                deck.addCard(card);
+            }
+        }
+        
+        for (int i = 0; i < 6; i++) {
+            deck.addCard(Card.SKIPBO);
+        }
+        
+        deck.shuffle();
+    }
+    
     @JsonIgnore
     public Player getCurrentPlayer() {
         return players.get(currentPlayerNumber);
