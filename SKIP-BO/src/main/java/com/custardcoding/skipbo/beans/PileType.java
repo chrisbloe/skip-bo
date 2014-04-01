@@ -56,6 +56,15 @@ public enum PileType {
                pileType == HAND5;
     }
     
+    public static List<PileType> getBuildPileTypes() {
+        return new ArrayList<PileType>() {{
+            add(BUILD1);
+            add(BUILD2);
+            add(BUILD3);
+            add(BUILD4);
+        }};
+    }
+    
     public static List<PileType> getHandPileTypes() {
         return new ArrayList<PileType>() {{
             add(HAND1);

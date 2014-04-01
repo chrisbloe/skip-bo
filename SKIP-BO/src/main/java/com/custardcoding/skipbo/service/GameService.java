@@ -3,17 +3,12 @@ package com.custardcoding.skipbo.service;
 import com.custardcoding.skipbo.beans.Card;
 import com.custardcoding.skipbo.beans.Game;
 import com.custardcoding.skipbo.beans.Pile;
-import com.custardcoding.skipbo.beans.PileArea;
 import com.custardcoding.skipbo.beans.PileType;
-import com.custardcoding.skipbo.beans.Player;
 import com.custardcoding.skipbo.beans.PlayerNumber;
 import com.custardcoding.skipbo.beans.api.FailureResponse;
 import com.custardcoding.skipbo.beans.api.Response;
 import com.custardcoding.skipbo.beans.api.SuccessResponse;
 import com.custardcoding.skipbo.repository.GameDAO;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.Random;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,12 +38,13 @@ public class GameService {
         deal(game);
         gameDAO.saveGame(game);
         
-        log.info("...game {} created, starting player {}", game.getId(), game.getCurrentPlayerNumber());
+        log.info("...game {} created, starting player is {}", game.getId(), game.getCurrentPlayerNumber());
         
         return game;
     }
     
     private void deal(Game game) {
+        log.trace("...dealing cards...");
         game.getPlayers().values().forEach((player) -> {
             Pile drawPile = player.getPile(PileType.DRAW);
             
@@ -63,35 +59,39 @@ public class GameService {
     }
 
     public Game retrieveGame(Long gameId) {
-        log.debug("Retrieving game {}...", gameId);
+        log.trace("{}: Retrieving game...", gameId);
         
         Game game = gameDAO.get(gameId);
         
-        log.debug("...game {} retrieved", gameId);
+        log.trace("{}: ...game retrieved", gameId);
         
         return game;
     }
     
     public Response playCard(Long gameId, PlayerNumber playerNumber, PileType fromPileType, PileType toPileType) {
-        log.debug("Playing card (game {}, player {}, from {}, to {})...", gameId, playerNumber, fromPileType, toPileType);
+        log.debug("{}: Playing card (player {}, from {}, to {})", gameId, playerNumber, fromPileType, toPileType);
         
         Game game = gameDAO.get(gameId);
         
         if (game == null) {
             FailureResponse response = new FailureResponse("Invalid game id!");
-            log.error("Game " + gameId + " does not exist", response);
+            log.error(gameId + ": Game does not exist", response);
             return response;
         } else if (!game.isCurrentPlayer(playerNumber)) {
             FailureResponse response = new FailureResponse("Wrong player!");
-            log.error("Wrong player (game " + gameId + ", player " + playerNumber + ')', response);
+            log.error(gameId + ": It isn't " + playerNumber + "'s turn", response);
             return response;
-        } else if (PileType.isGamePileArea(fromPileType) || game.getCurrentPlayer().getPile(fromPileType).isEmpty()) {
+        } else if (PileType.isGamePileArea(fromPileType)) {
             FailureResponse response = new FailureResponse("Cannot play from here!");
-            log.debug("Invalid from location", response);
+            log.debug(gameId + ": " + fromPileType + " does not belong to players", response);
+            return response;
+        } else if (game.getCurrentPlayer().getPile(fromPileType).isEmpty()) {
+            FailureResponse response = new FailureResponse("Cannot play from here!");
+            log.debug(gameId + ": " + fromPileType + " is empty", response);
             return response;
         } else if (!PileType.isBuildPileType(toPileType) && !PileType.isDiscardPileType(toPileType)) {
             FailureResponse response = new FailureResponse("Cannot play to here!");
-            log.debug("Invalid to location", response);
+            log.debug(gameId + ": Cannot play to " + toPileType, response);
             return response;
         }
         
@@ -99,48 +99,55 @@ public class GameService {
         
         if (fromPile.isEmpty()) {
             FailureResponse response = new FailureResponse("Pile empty!");
-            log.error("Emppty pile (game " + gameId + ", player " + playerNumber + ", pile " + fromPileType + ')', response);
+            log.error(gameId + ": " + fromPileType + " is empty", response);
             return response;
         }
         
         if (PileType.isGamePileArea(toPileType)) {
-            Card toPileTopCard = game.getPile(toPileType).getTopCard();
+            Pile toPile = game.getPile(toPileType);
+            Card toPileTopCardEquivalent = toPile.getTopCardEquivalent();
             
-            if (fromPile.getTopCard().canPlayOn(toPileTopCard)) {
-                game.getPile(toPileType).playCard(fromPile.removeTopCard());
-                
-                // If the card played was the last from the hand of 5 cards,
-                // replenish the hand
-                if (isHandEmpty(game)) {
-                    replenishHand(game);
+            if (fromPile.getTopCard().canPlayOn(toPileTopCardEquivalent)) {
+                if (toPile.getTopCard() == Card.SKIPBO) {
+                    log.trace("{}: Playing a {} on a {} ({})", gameId, fromPile.getTopCard(), toPile.getTopCard(), toPileTopCardEquivalent);
+                } else {
+                    log.trace("{}: Playing a {} on a {}", gameId, fromPile.getTopCard(), toPile.getTopCard());
                 }
                 
-                endTurn(game);
+                toPile.playCard(fromPile.removeTopCard());
+                
+                checkPiles(game);
                 PlayerNumber winner = game.getWinner();
                 gameDAO.saveGame(game);
                 
-                log.debug("...card played");
+                log.debug("{}: Card played", gameId);
                 
                 return new SuccessResponse(winner != null, winner);
             } else {
-                FailureResponse response = new FailureResponse("Cannot play to here!");
-                log.debug("Invalid to location", response);
-                return response;
+                if (toPile.getTopCard() == Card.SKIPBO) {
+                    log.debug("{}: Cannot play a {} on a {} ({})", gameId, fromPile.getTopCard(), toPile.getTopCard(), toPileTopCardEquivalent);
+                } else {
+                    log.debug("{}: Cannot play a {} on a {}", gameId, fromPile.getTopCard(), toPile.getTopCard());
+                }
+                
+                return new FailureResponse("Cannot play to here!");
             }
         } else {
             // Only play from the player's hand.
             if (PileType.isHandPileType(fromPileType)) {
-                game.getCurrentPlayer().getPile(toPileType).playCard(fromPile.removeTopCard());
+                Pile toPile = game.getCurrentPlayer().getPile(toPileType);
+                log.trace("{}: Playing a {} on a {}", gameId, fromPile.getTopCard(), toPile.getTopCard());
+                toPile.playCard(fromPile.removeTopCard());
                 endTurn(game);
                 PlayerNumber winner = game.getWinner();
                 gameDAO.saveGame(game);
 
-                log.debug("...card played");
+                log.debug("{}: Card played", gameId);
 
                 return new SuccessResponse(true, winner);
             } else {
                 FailureResponse response = new FailureResponse("Cannot play to here!");
-                log.debug("Invalid to location", response);
+                log.debug(gameId + ": Cannot discard from " + fromPileType, response);
                 return response;
             }
         }
@@ -154,10 +161,12 @@ public class GameService {
     private boolean isHandEmpty(Game game) {
         for (Pile h : game.getCurrentPlayersHand()) {
             if (!h.isEmpty()) {
+                log.trace("{}: {}'s hand is not empty", game.getId(), game.getCurrentPlayerNumber());
                 return false;
             }
         }
         
+        log.debug("{}: {}'s hand is empty, need to replenish", game.getId(), game.getCurrentPlayerNumber());
         return true;
     }
 
@@ -167,17 +176,40 @@ public class GameService {
                 h.addCard(getTopDeckCard(game));
             }
         });
+        
+        log.debug("{}: {}'s hand is replenished", game.getId(), game.getCurrentPlayerNumber());
     }
     
     private Card getTopDeckCard(Game game) {
         Pile deck = game.getPile(PileType.DECK);
         
         if (deck.isEmpty()) {
+            log.debug("{}: Deck is empty, replenishing from exile...", game.getId());
             Pile exile = game.getPile(PileType.EXILE);
             deck.addCards(exile.emptyPile());
             deck.shuffle();
+            log.debug("{}: ...deck now contains {} cards", game.getId(), deck.getSize());
         }
         
         return deck.removeTopCard();
+    }
+
+    private void checkPiles(Game game) {
+        // Reset any completed build piles
+        PileType.getBuildPileTypes().forEach(pileType -> {
+            Pile pile = game.getPile(pileType);
+            
+            if (pile.getSize() == 12) {
+                log.debug("{}: {} has reached 12 and is being reset", game.getId(), pileType);
+                Pile exile = game.getPile(PileType.EXILE);
+                exile.addCards(pile.emptyPile());
+                log.debug("{}: Exile contains {} cards", game.getId(), exile.getSize());
+            }
+        });
+        
+        // If the card played was the last from the hand of 5 cards, replenish the hand
+        if (isHandEmpty(game)) {
+            replenishHand(game);
+        }
     }
 }

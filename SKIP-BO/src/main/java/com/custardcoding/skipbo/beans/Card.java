@@ -96,7 +96,22 @@ public enum Card {
         }
     };
     
-    Card() { }
-    
     public abstract boolean canPlayOn(Card currentCard);
+    
+    public static Card getEquivalentCard(int count) {
+        switch (count) {
+            case 1: return ONE;
+            case 2: return TWO;
+            case 3: return THREE;
+            case 4: return FOUR;
+            case 5: return FIVE;
+            case 6: return SIX;
+            case 7: return SEVEN;
+            case 8: return EIGHT;
+            case 9: return NINE;
+            case 10: return TEN;
+            case 11: return ELEVEN;
+            default: return null;
+        }
+    }
 }

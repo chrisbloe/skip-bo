@@ -68,6 +68,11 @@ public class Pile implements Serializable {
     }
     
     @JsonIgnore
+    public Card getTopCardEquivalent() {
+        return Card.getEquivalentCard(cards.size());
+    }
+    
+    @JsonIgnore
     public Card removeTopCard() {
         return cards.remove(cards.size()-1);
     }

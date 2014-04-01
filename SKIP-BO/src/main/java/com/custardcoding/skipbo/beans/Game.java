@@ -35,10 +35,10 @@ public class Game implements Serializable {
     private Long id;
     
     @ElementCollection(fetch = FetchType.EAGER)
-    private Map<PileType, Pile> piles;
+    private final Map<PileType, Pile> piles;
     
     @ElementCollection(fetch = FetchType.EAGER)
-    private Map<PlayerNumber, Player> players;
+    private final Map<PlayerNumber, Player> players;
     
     @Enumerated(EnumType.STRING)
     private PlayerNumber currentPlayerNumber;
@@ -75,6 +75,7 @@ public class Game implements Serializable {
     }
 
     public void endTurn() {
+        log.trace("{}: {}'s turn has ended", id, currentPlayerNumber);
         currentPlayerNumber = currentPlayerNumber.getNextPlayer();
     }
     
@@ -90,20 +91,20 @@ public class Game implements Serializable {
         return piles.get(pileType);
     }
 
+    public List<Pile> getPiles(List<PileType> pileTypes) {
+        return new ArrayList<Pile>() {{
+            pileTypes.forEach(pileType -> {
+                add(piles.get(pileType));
+            });
+        }};
+    }
+
     public Map<PlayerNumber, Player> getPlayers() {
         return players;
     }
 
-    public void setPlayers(Map<PlayerNumber, Player> players) {
-        this.players = players;
-    }
-
     public PlayerNumber getCurrentPlayerNumber() {
         return currentPlayerNumber;
-    }
-
-    public void setCurrentPlayerNumber(PlayerNumber currentPlayerNumber) {
-        this.currentPlayerNumber = currentPlayerNumber;
     }
 
     public boolean isComplete() {
@@ -149,7 +150,7 @@ public class Game implements Serializable {
     public PlayerNumber getWinner() {
         for (PlayerNumber playerNumber : players.keySet()) {
             if (players.get(playerNumber).getPile(PileType.DRAW).isEmpty()) {
-                log.info("Player {} wins game {}!", playerNumber, id);
+                log.info("{}: Player {} wins!", id, playerNumber);
                 
                 complete = true;
                 
