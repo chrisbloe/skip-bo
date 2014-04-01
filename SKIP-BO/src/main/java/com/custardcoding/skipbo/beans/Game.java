@@ -4,8 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
+import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -38,6 +41,9 @@ public class Game implements Serializable {
     
     @Enumerated(EnumType.STRING)
     private PlayerNumber currentPlayerNumber;
+    
+    @Column(nullable = false)
+    private boolean complete;
     
     public Game() { }
 
@@ -92,7 +98,7 @@ public class Game implements Serializable {
         });
     }
     
-    private void endTurn() {
+    public void endTurn() {
         currentPlayerNumber = currentPlayerNumber.getNextPlayer();
     }
     
@@ -124,16 +130,36 @@ public class Game implements Serializable {
         this.currentPlayerNumber = currentPlayerNumber;
     }
 
+    public boolean isComplete() {
+        return complete;
+    }
+
+    public void setComplete(boolean complete) {
+        this.complete = complete;
+    }
+
     @JsonIgnore
     public Player getCurrentPlayer() {
         return players.get(currentPlayerNumber);
     }
     
-    @JsonIgnore()
+    @JsonIgnore
+    public List<Pile> getCurrentPlayersHand() {
+        Player currentPlayer = getCurrentPlayer();
+        
+        return new ArrayList<Pile>() {{
+            PileType.getHandPileTypes().forEach((type) -> {
+                add(currentPlayer.getPile(type));
+            });
+        }};
+    }
+    
     public PlayerNumber getWinner() {
         for (PlayerNumber playerNumber : players.keySet()) {
             if (players.get(playerNumber).getPile(PileType.DRAW).isEmpty()) {
                 log.info("Player {} wins game {}!", playerNumber, id);
+                
+                complete = true;
                 
                 return playerNumber;
             }

@@ -1,5 +1,8 @@
 package com.custardcoding.skipbo.beans;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author Custard
@@ -36,5 +39,23 @@ public enum PileType {
 
     public boolean isPlayableTo() {
         return playableTo;
+    }
+    
+    public static boolean isHandPileType(PileType pileType) {
+        return pileType == HAND1 ||
+               pileType == HAND2 ||
+               pileType == HAND3 ||
+               pileType == HAND4 ||
+               pileType == HAND5;
+    }
+    
+    public static List<PileType> getHandPileTypes() {
+        return new ArrayList<PileType>() {{
+            add(HAND1);
+            add(HAND2);
+            add(HAND3);
+            add(HAND4);
+            add(HAND5);
+        }};
     }
 }

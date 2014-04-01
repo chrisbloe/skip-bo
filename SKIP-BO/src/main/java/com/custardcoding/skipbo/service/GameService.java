@@ -99,11 +99,18 @@ public class GameService {
             
             if (fromPile.getTopCard().canPlayOn(toPileTopCard)) {
                 game.getPile(toPileType).playCard(fromPile.removeTopCard());
+                
+                // If the card played was the last from the hand of 5 cards,
+                // replenish the hand
+                if (isHandEmpty(game)) {
+                    replenishHand(game);
+                }
+                
+                endTurn(game);
+                PlayerNumber winner = game.getWinner();
                 gameDAO.saveGame(game);
                 
                 log.debug("...card played");
-                
-                PlayerNumber winner = game.getWinner();
                 
                 return new SuccessResponse(winner != null, winner);
             } else {
@@ -112,12 +119,46 @@ public class GameService {
                 return response;
             }
         } else {
-            game.getCurrentPlayer().getPile(toPileType).playCard(fromPile.removeTopCard());
-            gameDAO.saveGame(game);
-            
-            log.debug("...card played");
-            
-            return new SuccessResponse(true, game.getWinner());
+            // Only play from the player's hand.
+            if (PileType.isHandPileType(fromPileType)) {
+                game.getCurrentPlayer().getPile(toPileType).playCard(fromPile.removeTopCard());
+                endTurn(game);
+                PlayerNumber winner = game.getWinner();
+                gameDAO.saveGame(game);
+
+                log.debug("...card played");
+
+                return new SuccessResponse(true, winner);
+            } else {
+                FailureResponse response = new FailureResponse("Cannot play to here!");
+                log.debug("Invalid to location", response);
+                return response;
+            }
         }
+    }
+
+    private void endTurn(Game game) {
+        game.endTurn();
+        replenishHand(game);
+    }
+
+    private boolean isHandEmpty(Game game) {
+        for (Pile h : game.getCurrentPlayersHand()) {
+            if (!h.isEmpty()) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    private void replenishHand(Game game) {
+        Pile deck = game.getPile(PileType.DECK);
+        
+        game.getCurrentPlayersHand().forEach((h) -> {
+            if (h.isEmpty()) {
+                h.addCard(deck.removeTopCard());
+            }
+        });
     }
 }
