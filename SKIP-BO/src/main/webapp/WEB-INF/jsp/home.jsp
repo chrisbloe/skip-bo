@@ -23,12 +23,12 @@
             <br />
             
             <div class="row">
-                <div class="col-md-1"><img id="player1draw" class="card" /></div>
-                <div class="col-md-1 col-md-offset-1"><img id="player1hand1" class="card" /></div>
-                <div class="col-md-1"><img id="player1hand2" class="card" /></div>
-                <div class="col-md-1"><img id="player1hand3" class="card" /></div>
-                <div class="col-md-1"><img id="player1hand4" class="card" /></div>
-                <div class="col-md-1"><img id="player1hand5" class="card" /></div>
+                <div class="col-md-1"><img id="player1draw" class="card" draggable="true" title="ONE-DRAW" /></div>
+                <div class="col-md-1 col-md-offset-1"><img id="player1hand1" class="card" draggable="true" title="ONE-HAND1" /></div>
+                <div class="col-md-1"><img id="player1hand2" class="card" draggable="true" title="ONE-HAND2" /></div>
+                <div class="col-md-1"><img id="player1hand3" class="card" draggable="true" title="ONE-HAND3" /></div>
+                <div class="col-md-1"><img id="player1hand4" class="card" draggable="true" title="ONE-HAND4" /></div>
+                <div class="col-md-1"><img id="player1hand5" class="card" draggable="true" title="ONE-HAND5" /></div>
             </div>
             
             <div class="row">
@@ -38,39 +38,39 @@
             <br />
             
             <div class="row">
-                <div class="col-md-1"><img id="player1discard1" class="card" /></div>
-                <div class="col-md-1"><img id="player1discard2" class="card" /></div>
-                <div class="col-md-1"><img id="player1discard3" class="card" /></div>
-                <div class="col-md-1"><img id="player1discard4" class="card" /></div>
+                <div class="col-md-1"><img id="player1discard1" class="card" draggable="true" ondragover="allowDrop(event)" title="ONE-DISCARD1" /></div>
+                <div class="col-md-1"><img id="player1discard2" class="card" draggable="true" ondragover="allowDrop(event)" title="ONE-DISCARD2" /></div>
+                <div class="col-md-1"><img id="player1discard3" class="card" draggable="true" ondragover="allowDrop(event)" title="ONE-DISCARD3" /></div>
+                <div class="col-md-1"><img id="player1discard4" class="card" draggable="true" ondragover="allowDrop(event)" title="ONE-DISCARD4" /></div>
             </div>
             
             <br />
 
             <div class="row">
-                <div class="col-md-1"><img id="build1" class="card" /></div>
-                <div class="col-md-1"><img id="build2" class="card" /></div>
-                <div class="col-md-1"><img id="build3" class="card" /></div>
-                <div class="col-md-1"><img id="build4" class="card" /></div>
+                <div class="col-md-1"><img id="build1" class="card build" draggable="false" ondragover="allowDrop(event)" title="BUILD1" /></div>
+                <div class="col-md-1"><img id="build2" class="card build" draggable="false" ondragover="allowDrop(event)" title="BUILD2" /></div>
+                <div class="col-md-1"><img id="build3" class="card build" draggable="false" ondragover="allowDrop(event)" title="BUILD3" /></div>
+                <div class="col-md-1"><img id="build4" class="card build" draggable="false" ondragover="allowDrop(event)" title="BUILD4" /></div>
             </div>
             
             <br />
             
             <div class="row">
-                <div class="col-md-1"><img id="player2discard1" class="card" /></div>
-                <div class="col-md-1"><img id="player2discard2" class="card" /></div>
-                <div class="col-md-1"><img id="player2discard3" class="card" /></div>
-                <div class="col-md-1"><img id="player2discard4" class="card" /></div>
+                <div class="col-md-1"><img id="player2discard1" class="card" draggable="true" ondragover="allowDrop(event)" title="TWO-DISCARD1" /></div>
+                <div class="col-md-1"><img id="player2discard2" class="card" draggable="true" ondragover="allowDrop(event)" title="TWO-DISCARD2" /></div>
+                <div class="col-md-1"><img id="player2discard3" class="card" draggable="true" ondragover="allowDrop(event)" title="TWO-DISCARD3" /></div>
+                <div class="col-md-1"><img id="player2discard4" class="card" draggable="true" ondragover="allowDrop(event)" title="TWO-DISCARD4" /></div>
             </div>
             
             <br />
 
             <div class="row">
-                <div class="col-md-1"><img id="player2draw" class="card" /></div>
-                <div class="col-md-1 col-md-offset-1"><img id="player2hand1" class="card" /></div>
-                <div class="col-md-1"><img id="player2hand2" class="card" /></div>
-                <div class="col-md-1"><img id="player2hand3" class="card" /></div>
-                <div class="col-md-1"><img id="player2hand4" class="card" /></div>
-                <div class="col-md-1"><img id="player2hand5" class="card" /></div>
+                <div class="col-md-1"><img id="player2draw" class="card" draggable="true" title="TWO-DRAW" /></div>
+                <div class="col-md-1 col-md-offset-1"><img id="player2hand1" class="card" draggable="true" title="TWO-HAND1" /></div>
+                <div class="col-md-1"><img id="player2hand2" class="card" draggable="true" title="TWO-HAND2" /></div>
+                <div class="col-md-1"><img id="player2hand3" class="card" draggable="true" title="TWO-HAND3" /></div>
+                <div class="col-md-1"><img id="player2hand4" class="card" draggable="true" title="TWO-HAND4" /></div>
+                <div class="col-md-1"><img id="player2hand5" class="card" draggable="true" title="TWO-HAND5" /></div>
             </div>
             
             <div class="row">

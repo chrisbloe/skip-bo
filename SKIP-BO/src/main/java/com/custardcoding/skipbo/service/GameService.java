@@ -106,7 +106,7 @@ public class GameService {
                 
                 log.debug("{}: Card played", gameId);
                 
-                return new SuccessResponse(winner != null, winner);
+                return new SuccessResponse(game, winner != null, winner);
             } else {
                 if (toPile.getTopCard() == Card.SKIPBO) {
                     log.debug("{}: Cannot play a {} on a {} ({})", gameId, fromPile.getTopCard(), toPile.getTopCard(), toPileTopCardEquivalent);
@@ -128,7 +128,7 @@ public class GameService {
 
                 log.debug("{}: Card played", gameId);
 
-                return new SuccessResponse(true, winner);
+                return new SuccessResponse(game, true, winner);
             } else {
                 throw new BadRequestException(gameId, RequestError.INVALID_PLAY);
             }
